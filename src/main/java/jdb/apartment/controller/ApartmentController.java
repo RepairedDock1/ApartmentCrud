@@ -13,6 +13,7 @@ import jdb.apartment.dto.ApartmentDTO;
 import jdb.apartment.dto.GenericResponseDTO;
 import jdb.apartment.service.ApartmentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -97,5 +98,8 @@ public class ApartmentController {
       GenericResponseDTO genericResponseDTO) {
     return ResponseEntity.status(genericResponseDTO.getStatus())
         .contentType(MediaType.APPLICATION_JSON).body(genericResponseDTO);
+
+    // Also possible:
+    // return new ResponseEntity<GenericResponseDTO>(genericResponseDTO, HttpStatus.OK);
   }
 }

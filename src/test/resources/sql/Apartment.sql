@@ -9,5 +9,4 @@ CREATE TABLE Apartment(
 
 
 -- Seeded Data -------------------------------------------------------------------------------------
-
 INSERT INTO Apartment (APT_ID, APT_NM, UNITS, PRICE) VALUES (1, 'Post Uptown', 50, 5000000);

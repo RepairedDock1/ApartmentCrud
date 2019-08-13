@@ -9,6 +9,12 @@ public class ApartmentDTO {
     public ApartmentDTO() {
     }
 
+    public ApartmentDTO(String apartmentName, Integer units, Integer price){
+        this.apartmentName = apartmentName;
+        this.units = units;
+        this.price = price;
+    }
+
     public ApartmentDTO(Integer apartmentId, String apartmentName, Integer units,
         Integer price) {
         this.apartmentId = apartmentId;

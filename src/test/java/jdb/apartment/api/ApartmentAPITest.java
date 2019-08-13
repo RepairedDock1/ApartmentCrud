@@ -3,6 +3,8 @@ package jdb.apartment.api;
 import static jdb.apartment.constants.ResponseConstants.SUCCESSFUL_DELETE;
 import static jdb.apartment.constants.ResponseConstants.SUCCESSFUL_INSERT;
 import static jdb.apartment.constants.SqlQueryConstants.GET_APARTMENT;
+import static jdb.apartment.constants.SqlQueryConstants.GET_MAX_ID;
+import static jdb.apartment.constants.SqlQueryConstants.INSERT_APARTMENT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -15,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashMap;
 import jdb.apartment.dto.ApartmentDTO;
 import jdb.apartment.dto.GenericResponseDTO;
 import jdb.apartment.repository.rowmappings.ApartmentMapper;
@@ -97,11 +100,17 @@ public class ApartmentAPITest {
 
   @Test(expected = EmptyResultDataAccessException.class)
   public void testDeleteApartment() throws Exception {
-    mockMvc.perform(delete("/apartment/{apartmentId}", 1)).andExpect(status()
-        .isOk()).andExpect(content().json(getExpectedResponse(OK, SUCCESSFUL_DELETE, null)));
+    ApartmentDTO seededApartment = new ApartmentDTO(getNewApartmentId(), "APT SEED", 1, 100);
+    namedParameterJdbcTemplate
+        .update(INSERT_APARTMENT, getInsertParameterMap(seededApartment));
 
+    mockMvc.perform(delete("/apartment/{apartmentId}", seededApartment.getApartmentId()))
+        .andExpect(status()
+            .isOk()).andExpect(content().json(getExpectedResponse(OK, SUCCESSFUL_DELETE, null)));
+
+    // should throw EmptyResultDataAccessException because deleted request not found
     namedParameterJdbcTemplate.getJdbcOperations()
-        .queryForObject(GET_APARTMENT, new ApartmentMapper(), 1);
+        .queryForObject(GET_APARTMENT, new ApartmentMapper(), seededApartment.getApartmentId());
   }
 
   private String getExpectedResponse(HttpStatus status, String message, ApartmentDTO apartmentDTO)
@@ -112,5 +121,25 @@ public class ApartmentAPITest {
     expectedResponseDTO.setData(apartmentDTO);
 
     return objectMapper.writeValueAsString(expectedResponseDTO);
+  }
+
+  private HashMap<String, Object> getInsertParameterMap(ApartmentDTO apartmentDTO) {
+    HashMap<String, Object> parameterMap = new HashMap<>();
+    parameterMap.put("APT_ID", apartmentDTO.getApartmentId());
+    parameterMap.put("APT_NM", apartmentDTO.getApartmentName());
+    parameterMap.put("UNITS", apartmentDTO.getUnits());
+    parameterMap.put("PRICE", apartmentDTO.getPrice());
+
+    return parameterMap;
+  }
+
+  private Integer getNewApartmentId() {
+    Integer max = namedParameterJdbcTemplate.getJdbcOperations()
+        .queryForObject(GET_MAX_ID, Integer.class);
+    if (null == max) {
+      return 1;
+    }
+
+    return ++max;
   }
 }
